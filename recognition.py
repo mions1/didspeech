@@ -1,5 +1,5 @@
 import speech_recognition as sr
-import sys, os
+import sys, os, time
 from tkinter import filedialog
 from tkinter import *
 from tkinter import scrolledtext, messagebox
@@ -32,14 +32,32 @@ def browse(label):
 def tb_replace(tb, text, replace=True):
     """ Replace (or append) text in a textbox
     """
+    if tb == None:
+        return
     if replace:
         tb.delete("1.0", END)
     tb.insert(INSERT, text)
     tb.update()
 
+def check_time_format(time):
+    if len(time) != 8:
+        return False
+    h = time[0:2]
+    m = time[3:5]
+    s = time[6:]
+    if h.isdigit() and m.isdigit and s.isdigit and time[2]==":" and time[5]==":":
+        return True
+
 def time_2_ms(start, end):
     """ It converts start and end from "hh:mm:ss" in ms
     """
+    if not check_time_format(start):
+        start = "00:00:00"
+        print_d("Start format wrong, repalce with "+start)
+    if not check_time_format(end):
+        end = "00:00:00"
+        print_d("End format wrong, repalce with "+end)
+
     h_start = start[0:2]
     m_start = start[3:5]
     s_start = start[6:]
@@ -55,11 +73,11 @@ def time_2_ms(start, end):
 
     return s, e
 
-
-def start_parse(file, start, end, out=None, chunk_size=50000):  
+def start_parse(file, start="00:00:00", end="00:00:00", out=None, chunk_size=50000):  
     """ Main function, start parsing process
     """
-        
+    
+    start_time = time.time()
     print_d("Starting parse...")
     
     if "..." in file[-4:]:
@@ -78,6 +96,8 @@ def start_parse(file, start, end, out=None, chunk_size=50000):
     ms_start, ms_end = time_2_ms(start, end)
     print_d("Loading audio file...")
     audio = AudioSegment.from_wav(file)
+    if ms_end == 0:
+        ms_end = len(audio)
     text = ""
     file_list = []
     r = sr.Recognizer()
@@ -113,6 +133,9 @@ def start_parse(file, start, end, out=None, chunk_size=50000):
         ms_start += chunk_size
         i = ms_start
         j += 1
+
+    elapsed_time = time.time() - start_time
+    print("Tempo: "+str(elapsed_time))
     finish_parse(text, file_list)
     tb_replace(out, "\n--------------------------------FINISH-------------------------\n", False)
 
@@ -132,8 +155,8 @@ def finish_parse(text, file_list, filename="save.txt"):
 if "--nogui" in sys.argv:
     if "--debug" in sys.argv:
         file = "demo.wav"
-        start = "00:00:40"
-        end = "00:01:00"
+        start = "00:00:00"
+        end = "00:02:00"
     else:
         file = sys.argv[1]
         start = sys.argv[2] #00:00:40
