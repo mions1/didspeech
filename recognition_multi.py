@@ -1,5 +1,5 @@
 import speech_recognition as sr
-import sys, os, math, time
+import sys, os, math, time, argparse
 import tkinter as tk
 from tkinter import scrolledtext, messagebox, filedialog
 from tkinter.ttk import *
@@ -8,116 +8,12 @@ from pydub import AudioSegment
 from threading import Thread
 from gui.MainWindow import MainWindow
 from gui.Frame import SelectFileFrame, OptionsFrame, OutputFrame
+from utils import Misc as misc
+from utils.Misc import print_d, tb_replace, browse
+from multithread.Multithread import *
 
 # Global var
-TRACE = 1	# tracing level
 THREADS = 4	# threads number
-
-class Chunk():
-	def __init__(self, number, chunk, filename, start="00:00:00", end="00:00:00"):
-		self._number = number
-		self._chunk = chunk
-		self._filename = filename
-		self._start = start
-		self._end = end
-		self._done = False
-
-	def toString(self):
-		print("File: "+str(self._filename)+" Start: "+str(self._start)+" End: "+str(self._end))
-
-class PrintPartial(Thread):
-
-	def __init__(self, logger, chunks):
-		Thread.__init__(self)
-		self._logger = logger
-		self._chunks = chunks
-
-	def run(self):
-		print_d("Starting print partial...")
-		all_done = False
-		j = 0
-		while not all_done:
-			print_d("Sleep 8s...")
-			time.sleep(8)
-			print_d("Awake")
-			i = j
-			all_done = True
-			for t in Parsing.text[i:]:
-				all_done = False
-				if t == False:
-					print_d(str(i)+": not yet")
-					break
-				if i == 0:
-					t = "---------- PARTIAL RESULT -----------\n"+t
-				print_d(str(i+1)+": to print")
-				tb_replace(self._logger, "\n"+t, False)
-				i += 1
-				j = i
-		print_d("All done, die")
-
-class Parsing(Thread):
-	file = None
-	text = []
-
-	def __init__(self, chunks=[], name=""):
-		Thread.__init__(self)
-		self._r = sr.Recognizer()
-		self._chunks = chunks
-		self._text = ""
-		self._name = str(name)
-		pass
-
-	def run(self):
-		print_d("Thread #"+self._name+" starting...")
-		for c in self._chunks:
-			c._chunk.export(c._filename, format="wav")
-			wav = sr.AudioFile(c._filename)
-
-			with wav as source:
-				self._r.pause_threshold = 3.0
-				listen = self._r.listen(source)
-			
-			try:
-				text_tmp = self._r.recognize_google(listen, language="it-IT")
-				self._text += "\n"+text_tmp
-				c._done = True
-				Parsing.text[c._number] = text_tmp
-			except Exception as e:
-				print(e)
-
-		print_d("Thread #"+self._name+" finished")
-		pass
-
-	def toString(self):
-		print("File: "+str(self._chunks))
-
-def print_d(text, level=1):
-	""" Enable trace to print tracing. Higher levels means more details
-	"""
-	if TRACE == level:
-		print(str(text))
-
-""" Allow user to select a directory
-
-Parameters:
-	label (StringVar): Label to set with folder path
-"""
-def browse(label):
-	print_d("Selecting file...")
-	filename = filedialog.askopenfilename()
-	if filename == () or filename == '':
-		filename = "No file selected..."
-	#label.set(filename[filename.rfind("/")+1:])
-	print_d("Selected file: "+str(filename))
-	label.set(filename)
-
-def tb_replace(tb, text, replace=True):
-	""" Replace (or append) text in a textbox
-	"""
-	if replace:
-		tb.delete("1.0", tk.END)
-	tb.insert(tk.INSERT, text)
-	tb.update()
 
 def check_time_format(time):
     if len(time) != 8:
@@ -153,17 +49,17 @@ def time_2_ms(start, end):
 
 	return s, e
 
-
 def start_parse(file, start, end, out=None, chunk_size=50000):  
 	""" Main function, start parsing process
 	"""
+	global THREADS
+
 	if "--debug" in sys.argv:
 		file = "demo.wav"
 		start = "00:00:00"
 		end = "00:06:00"
 
 	start_time = time.time()
-	global THREADS
 	print_d("Starting parse...")
 	
 	if "..." in file[-4:]:
@@ -253,77 +149,94 @@ def finish_parse(text, file_list, filename="save.txt", gui=True):
 		tb_replace(gui, "------------ RESULT -----"+text)
 		messagebox.showinfo("Info", "Finish. Result saved on "+filename)
 
-if "--debug" in sys.argv:
-	file = "demo.wav"
-	start = "00:00:00"
-	end = "00:03:00"
+#------------------ MAIN ------------------------------------------------------
+if __name__ == "__main__":
+	
+	#-------------- Get and handle params -------------------------------------
+	args = misc.handle_params()
+	THREADS = args["threads"]
+	misc.TRACE = args["trace"]
 
-	if "--gui" in sys.argv:
-		if "--debug" in sys.argv:	
+	print_d("Args: "+str(args))
+
+	# if debug is on, set default values
+	if args["debug"]:
+		file = "demo.wav"
+		start = "00:00:00"
+		end = "00:06:00"
+	# if nogui is on, start without gui
+	if args["nogui"]:
+		if args["debug"] in sys.argv:	
 			start_parse(file, start, end)
+		# if debug is off, get params values
 		else:
-			file = sys.argv[1]
-			start = sys.argv[2] #00:00:00
-			end = sys.argv[3]   #00:02:00
+			file = args["file"]
+			start = args["start"] #00:00:00
+			end = args["end"]  #00:02:00
+			start_parse(file, start, end)
 		exit()    
 
-#------------------ Create Windows --------------------------------------------
-window = MainWindow()
-window.create_window()
+	#------------------ Create Windows --------------------------------------------
+	window = MainWindow()
+	window.create_window()
 
-#------------------ Frame select file -----------------------------------------
-# frame top left
-f_select_file = SelectFileFrame(master=window, x=0.0, y=0.0, h=0.25, w=0.4) 
+	#------------------ Frame select file -----------------------------------------
+	# frame top left
+	f_select_file = SelectFileFrame(master=window, x=0.0, y=0.0, h=0.25, w=0.4) 
 
-# string to put in select file button, it will become the file name
-t_selected_file = tk.StringVar(master=f_select_file, value="select file audio to parse...")
+	# string to put in select file button, it will become the file name
+	t_selected_file = tk.StringVar(master=f_select_file, value="select file audio to parse...")
 
-# select file button
-b_select_file = tk.Button(f_select_file, name="b_select_file", textvariable=t_selected_file,
-			command=lambda: [browse(t_selected_file)])
+	# select file button
+	b_select_file = tk.Button(f_select_file, name="b_select_file", textvariable=t_selected_file,
+				command=lambda: [browse(t_selected_file)])
 
-# label above select file button
-l_above_select_button = tk.Label(f_select_file, text="Input audio file: ")
+	# label above select file button
+	l_above_select_button = tk.Label(f_select_file, text="Input audio file: ")
 
-l_above_select_button.pack()
-b_select_file.pack()
+	l_above_select_button.pack()
+	b_select_file.pack()
 
-#------------------ Frame options ---------------------------------------------
-# frame top right
-f_options = OptionsFrame(master=window, x=0.5, y=0.0, h=0.25, w=0.4)
+	#------------------ Frame options ---------------------------------------------
+	# frame top right
+	f_options = OptionsFrame(master=window, x=0.5, y=0.0, h=0.25, w=0.4)
 
-# labels beside the text box
-l_start = tk.Label(f_options, text="Start at (hh:mm:ss)")
-l_start.grid(row=0)
-l_end = tk.Label(f_options, text="End at (hh:mm:ss)")
-l_end.grid(row=1)
+	# labels beside the text box
+	l_start = tk.Label(f_options, text="Start at (hh:mm:ss)")
+	l_start.grid(row=0)
+	l_end = tk.Label(f_options, text="End at (hh:mm:ss)")
+	l_end.grid(row=1)
 
-# text box where write start and end point
-e_start = tk.Entry(f_options)
-e_start.insert(0, "00:00:00")
-e_end = tk.Entry(f_options)
-e_end.insert(0, "00:00:00")
-e_start.grid(row=0, column=1)
-e_end.grid(row=1, column=1)
+	# text box where write start and end point
+	e_start = tk.Entry(f_options)
+	e_start.insert(0, "00:00:00")
+	e_end = tk.Entry(f_options)
+	e_end.insert(0, "00:00:00")
+	e_start.grid(row=0, column=1)
+	e_end.grid(row=1, column=1)
 
-tb_out = scrolledtext.ScrolledText()	# text box of the output
+	tb_out = scrolledtext.ScrolledText()	# text box of the output
 
-# buttons to start and quit program
-b_start = tk.Button(f_options, text='Start', name="b_start",
-		command=lambda: Thread(target=start_parse, args=(t_selected_file.get(), e_start.get(), e_end.get(), tb_out)).start())
-b_start.grid(row=3, column=0, sticky=tk.W, pady=4)
-b_quit = tk.Button(f_options, text='Force quit', name="b_quit", command=lambda: exit())
-b_quit.grid(row=3, column=1, sticky=tk.W, pady=4)
+	# buttons to start and quit program
+	b_start = tk.Button(f_options, text='Start', name="b_start",
+			command=lambda: Thread(target=start_parse, args=(t_selected_file.get(), e_start.get(), e_end.get(), tb_out)).start())
+	b_start.grid(row=3, column=0, sticky=tk.W, pady=4)
+	b_quit = tk.Button(f_options, text='Force quit', name="b_quit", command=lambda: exit())
+	b_quit.grid(row=3, column=1, sticky=tk.W, pady=4)
 
-#------------------ Frame output ----------------------------------------------
-f_out = OutputFrame(master=window, x=0.1, y=0.3, h=0.6, w=0.8)
+	#------------------ Frame output ----------------------------------------------
+	f_out = OutputFrame(master=window, x=0.1, y=0.3, h=0.6, w=0.8)
 
-# output text box 
-tb_out = scrolledtext.ScrolledText(f_out, undo=True, height=15)
-tb_out.pack(expand=True, fill='both')
+	# output text box 
+	tb_out = scrolledtext.ScrolledText(f_out, undo=True, height=15)
+	tb_out.pack(expand=True, fill='both')
 
-# setting up output box
-tb_out.insert(tk.INSERT, "1. Select an audio file\n2. Set range to parse (left blank if the whole file)\n3. Press Start button\nIn this box you will see log and result")
+	# setting up output box
+	tmp_str = "1. Select an audio file\n"
+	tmp_str += "2. Set range to parse (left blank if the whole file)\n"
+	tmp_str += "3. Press Start button\n"
+	tmp_str += "In this box you will see log and result"
+	tb_out.insert(tk.INSERT, tmp_str)
 
-#------------------ Start window ----------------------------------------------
-window.mainloop()
+	#------------------ Start window ----------------------------------------------
+	window.mainloop()
