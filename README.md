@@ -8,7 +8,6 @@ I know, now it is a little bit confused, but it's a beta.
 
 # TODO
 - Split main program in module to well design
-- Merge multi_thread and not-multi_thread
 - In gui, in start and end, a way to simplify it
 - Make gui more beautiful
 - More options in gui
