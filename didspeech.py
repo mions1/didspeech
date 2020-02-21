@@ -6,54 +6,28 @@ from tkinter.ttk import *
 from os import path
 from pydub import AudioSegment
 from threading import Thread
-from gui.MainWindow import MainWindow
-from gui.Frame import SelectFileFrame, OptionsFrame, OutputFrame
-from utils import Misc as misc
-from utils.Misc import print_d, tb_replace, browse
-from multithread.Multithread import *
+from gui.mainwindow import MainWindow
+from gui.frame import SelectFileFrame, OptionsFrame, OutputFrame
+from utils import misc
+from utils.misc import print_d, tb_replace, browse, time_2_ms, check_time_format
+from multithread.multithread import *
 
 # Global var
 THREADS = 4	# threads number
 
-def check_time_format(time):
-    if len(time) != 8:
-        return False
-    h = time[0:2]
-    m = time[3:5]
-    s = time[6:]
-    if h.isdigit() and m.isdigit and s.isdigit and time[2]==":" and time[5]==":":
-        return True
-
-def time_2_ms(start, end):
-	""" It converts start and end from "hh:mm:ss" in ms
-	"""
-	if not check_time_format(start):
-		start = "00:00:00"
-		print_d("Start format wrong, repalce with "+start)
-	if not check_time_format(end):
-		end = "00:00:00"
-		print_d("End format wrong, repalce with "+end)
-
-	h_start = start[0:2]
-	m_start = start[3:5]
-	s_start = start[6:]
-
-	h_end = end[0:2]
-	m_end = end[3:5]
-	s_end = end[6:]
-
-	s = int(h_start)*(60*60*1000) + int(m_start)*(60*1000) + int(s_start)*(1000)
-	e = int(h_end)*(60*60*1000) + int(m_end)*(60*1000) + int(s_end)*(1000)
-
-	print_d("Start at: "+str(start)+" ("+str(s)+" ms)"+"\nEnd at: "+str(end)+" ("+str(e)+" ms)")
-
-	return s, e
-
 def start_parse(file, start, end, out=None, chunk_size=50000):  
 	""" Main function, start parsing process
+
+	Parameters:
+		file (str): audio file to parse
+		start (str): starting point in format 'hh:mm:ss'
+		end (str): ending point in format 'hh:mm:ss'
+		out (ScrolledText): text box to showing log and result
+		chunk_size (int): audio lenght of chunk, in ms
 	"""
 	global THREADS
 
+	# if debug is on, set default values FIXME: It must be set in main
 	if "--debug" in sys.argv:
 		file = "demo.wav"
 		start = "00:00:00"
@@ -62,48 +36,58 @@ def start_parse(file, start, end, out=None, chunk_size=50000):
 	start_time = time.time()
 	print_d("Starting parse...")
 	
+	# if no file selected, return
 	if "..." in file[-4:]:
 		print_d("no file selected, exit!")
 		messagebox.showwarning("Warning", "Please, specified an audio file")   
 		return
 	
+	# if audio file is no a .wav FIXME: It must support more audio type
 	if ".wav" not in file[-5:]:
 		print_d("no wav, exit!")
 		messagebox.showwarning("Warning", "Please, audio file must be in a .wav format")   
 		return
 
+	# get start and end point from hh:mm:ss in ms
 	ms_start, ms_end = time_2_ms(start, end)
 	print_d("Loading audio file...")
+
+	# load audio file
 	audio = AudioSegment.from_wav(file)
 	if ms_start == 0:
 		start = "00:00:00"
 	if ms_end == 0:
 		end = "00:00:00"
+		# set ms_end at len of audio if end was set to 0
 		ms_end = len(audio)
 	print_d("File: "+file+"\nStart: "+start+" ("+str(ms_start)+") \nEnd: "+end+" ("+str(ms_end)+" ms)")
-	text = ""
-	file_list = []
-	chunks = []
-	threads = []
+	file_list = []	# in it, store list of chunk file saved
+	chunks = []		# in it, store all chunks (see class Chunk)
+	threads = []	# in it, store threads which execute chunk (see class Parsing)
+
+	# split audio file in chunks according to chunk_size, from ms_start to ms_end
 	i = ms_start
 	j = 1
 	while i < ms_end:
+		chunk = audio[ms_start:ms_start+chunk_size]	# split audio file in a chunk of chunk_size size
+		chunk_file = file+"_chunk_"+str(j)+".wav"	# name of file (ex. demo.wav_chunk_1.wav)
+		chunks.append(Chunk(j-1, chunk, chunk_file, ms_start, ms_start+chunk_size))	# store the Chunk instance into list
+		file_list.append(chunk_file)	# append file to file_list (it will be use to eliminate these tmp files)
 
-		chunk = audio[ms_start:ms_start+chunk_size]
-		chunk_file = file+"_chunk_"+str(j)+".wav"
-		chunks.append(Chunk(j-1, chunk, chunk_file, ms_start, ms_start+chunk_size))
-		file_list.append(chunk_file)
-
+		# update var for while loop
 		ms_start += chunk_size
 		i = ms_start
 		j += 1
 
-	chunks_num = len(chunks)
-	Parsing.text = [False]*(chunks_num-1)
+	chunks_num = len(chunks)	# number of chunks created
+	Parsing.text = [False]*(chunks_num-1)	# used to print partial result in log text box
 	print_d("#Chunks: "+str(chunks_num))
 
+	# if there are more chunks than threads, set threads number to chunks number
 	if chunks_num < THREADS:
-		THREADS = 1
+		THREADS = chunks_num
+
+	# distribuite in equal part chunks to threds. If even, the last thread will have more chunks
 	s = math.floor(chunks_num/THREADS)
 	j = 0
 	n_thread = 0
@@ -115,11 +99,13 @@ def start_parse(file, start, end, out=None, chunk_size=50000):
 		for c in chunks[j:]:
 			threads[-1]._chunks.append(c)
 	
+	# start parsing
 	print_d("Starting threads...")
 	for t in threads:
 		t.start()
 	print_d("Waiting for finish...")
 
+	# start thread that print partial result in order. See class PrintPartial for more information
 	if out:
 		print_partial = PrintPartial(out, chunks)
 		print_partial.start()
@@ -127,6 +113,7 @@ def start_parse(file, start, end, out=None, chunk_size=50000):
 	for t in threads:
 		t.join()
 
+	# at the end, save the result in text
 	text = ""
 	for t in threads:
 		text += t._text+"\n"
@@ -136,22 +123,36 @@ def start_parse(file, start, end, out=None, chunk_size=50000):
 	print_d("Tempo esecuzione: "+str(elapsed_time))
 
 def finish_parse(text, file_list, filename="save.txt", gui=True):
+	""" Invoke at the end of parsing. It save the result on file and show it
+		on log text box. Furthermore, delete created chunks file and show a pop up
+		that inform for the finish.
+
+	Parameters:
+		text (str): result
+		file_list (list): list of file to be delete (chunks)
+		filename (str): file to save result
+		gui (ScrolledText): text box to show result
+	"""
 	print_d("Finish!")
+
+	# save result on file
 	with open(filename, "w+") as f:
 		print_d("Writing response on file "+filename+"...")
 		f.write(text)
 
+	# delete files
 	for f in file_list:
 		print_d("Deleting file "+str(f)+"...")
 		os.remove(f)
 	
+	# show result in text box and show pop up
 	if gui:
 		tb_replace(gui, "------------ RESULT -----"+text)
 		messagebox.showinfo("Info", "Finish. Result saved on "+filename)
 
 #------------------ MAIN ------------------------------------------------------
 if __name__ == "__main__":
-	
+
 	#-------------- Get and handle params -------------------------------------
 	args = misc.handle_params()
 	THREADS = args["threads"]
