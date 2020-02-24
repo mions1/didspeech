@@ -8,7 +8,7 @@ from os import path
 from pydub import AudioSegment
 from threading import Thread
 from qt_gui.utils import misc
-from qt_gui.utils.misc import print_d, time_2_ms
+from qt_gui.utils.misc import print_d, time_2_ms, ms_2_time
 from qt_gui.multithread.multithread import *
 
 sys.path.append("..")
@@ -90,6 +90,8 @@ class Didspeech(qt.QApplication):
 		handle their functions.
 	"""
 
+	SUPPORTED_FILE = ".wav;"
+
 	def __init__(self, file="Select file...", chunk_size=5000, output_file="save.txt", options=[]):
 		""" Main class, application
 
@@ -143,7 +145,7 @@ class Didspeech(qt.QApplication):
 		self._e_end.setInputMask("99:99:99")
 		self._e_end.setText("00:00:00")
 
-		self._b_start = qt.QPushButton("Start", default=True)
+		self._b_start = qt.QPushButton("Start", enabled=False, default=True)
 		self._b_quit = qt.QPushButton("Force quit")
 
 		self._b_start.clicked.connect(self.start_parse)
@@ -177,6 +179,26 @@ class Didspeech(qt.QApplication):
 
 		#---------- <ADD HERE OTHER FRAMES AND WIDGETS TO CREATE> -------------
 
+	def check_file(self, selected):
+
+		# if no file selected, return
+		if "Select file..." == selected:
+			if "--debug" in sys.argv:
+				self._file = "demo.wav"
+			else:
+				print_d("no file selected, exit!")
+				self.error_dialog("Please, first select a file")  
+				return False
+		
+		# if audio file is no a .wav FIXME: It must support more audio type
+		if selected != "":
+			if selected[-4:] not in Didspeech.SUPPORTED_FILE:
+				print_d("file not supported yet, exit!")
+				self.error_dialog("Please, audio file must be in a supported type: "+str(Didspeech.SUPPORTED_FILE))  
+				return False
+		
+		return True
+
 	def set_file(self):
 		""" Browse into filesystem to choose an audio file
 
@@ -196,11 +218,14 @@ class Didspeech(qt.QApplication):
 		options |= qt.QFileDialog.DontUseNativeDialog
 		choose = qt.QFileDialog.getOpenFileName(dialog, "QFileDialog.getOpenFileName()", "", file_types_str, options=options)
 		selected = choose[0]
-		if selected == "":
-			return
-		self._b_select_file.setText(choose[0][choose[0].rindex("/")+1:])
-		self._file = choose[0]
-		return choose[0]
+		if self.check_file(selected):
+			self._b_select_file.setText(choose[0][choose[0].rindex("/")+1:])
+			self._file = choose[0]
+			self._audio = AudioSegment.from_wav(self._file)
+			print(ms_2_time(len(self._audio)))
+			self._e_end.setText(ms_2_time(len(self._audio)))
+			self._b_start.setEnabled(True)
+			return choose[0]
 	
 	def set_output_file(self):
 		""" Browse into filesystem
@@ -244,21 +269,6 @@ class Didspeech(qt.QApplication):
 		global THREADS
 
 		print_d("Starting parse...")
-		#---------- First check if file is ok ---------------------------------
-		# if no file selected, return
-		if "" == self._file:
-			if "--debug" in sys.argv:
-				self._file = "/home/ubuntu-simone/Development/Git/didspeech/demo.wav"
-			else:
-				print_d("no file selected, exit!")
-				self.error_dialog("Please, first select a file")  
-				return
-		
-		# if audio file is no a .wav FIXME: It must support more audio type
-		if ".wav" not in self._file[-5:]:
-			print_d("no wav, exit!")
-			self.error_dialog("Please, audio file must be in a supported type")  
-			return
 
 		#---------- Now, if a file is select ---------------------------------------
 		# get start and end point
@@ -277,9 +287,6 @@ class Didspeech(qt.QApplication):
 		if ms_end == 0:
 			self._end = "00:00:00"
 			ms_end = len(audio)
-
-		# load audio file
-		audio = AudioSegment.from_wav(self._file)
 
 		#---------- Setting up threads ----------------------------------------
 		print_d("File: "+self._file+"\nStart: "+self._start+" ("+str(ms_start)+") \nEnd: "+self._end+" ("+str(ms_end)+" ms)")

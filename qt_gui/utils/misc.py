@@ -59,3 +59,17 @@ def time_2_ms(start, end):
 	print_d("Start at: "+str(start)+" ("+str(s)+" ms)"+"\nEnd at: "+str(end)+" ("+str(e)+" ms)")
 
 	return s, e
+
+def ms_2_time(ms):
+
+	ss = int(ms/1000)%60
+	if ss < 10:
+		ss = "0"+str(ss)
+	mm = int((ms/(60*1000)) % 60)
+	if mm < 10:
+		mm = "0"+str(mm)
+	hh = int(ms/(60*60*1000)%24)
+	if hh < 10:
+		hh = "0"+str(hh)
+
+	return str(hh)+":"+str(mm)+":"+str(ss)
