@@ -3,7 +3,6 @@ import sys, os, math, time, argparse
 import PyQt5.QtWidgets as qt
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
 
 from os import path
 from pydub import AudioSegment
@@ -11,9 +10,9 @@ from threading import Thread
 from qt_gui.utils import misc
 from qt_gui.utils.misc import print_d, time_2_ms
 from qt_gui.multithread.multithread import *
-from PyQt5.QtGui import QIcon
 
 sys.path.append("..")
+sys.path.append(".")
 
 THREADS = 4
 
@@ -91,34 +90,43 @@ class Didspeech(qt.QApplication):
 		handle their functions.
 	"""
 
-	FILE_TYPE_ALL = "All files (*)"
-	FILE_TYPE_WAV = "Wav files (*.wav)"
-
-	def __init__(self, chunk_size=50000, options=[]):
+	def __init__(self, file="Select file...", chunk_size=5000, output_file="save.txt", options=[]):
 		""" Main class, application
 
 		Parameters:
 			chunk_size (int): length of every chunk (so, a piece of audio)
 		"""
 		super().__init__(options)
-		self._file = ""
+		self._file = file
 		self._start = ""
 		self._end = ""
 		self._chunk_size = chunk_size
-		pass
+		self._output_file = output_file
 
 	def init(self):
+		self.load_resources()
 		#-------------- Frame select file -----------------------------------------
-		self._f_select_file = qt.QVBoxLayout()
+		self._f_select_file = qt.QGridLayout()
 
 		self._l_select_file = qt.QLabel("Input file:")
-		self._b_select_file = qt.QPushButton("Select file...")
+		self._l_select_file.setStyleSheet(self._resources["labels"]["all_input"])
+		self._b_select_file = qt.QPushButton(self._file)
 
-		self._f_select_file.addWidget(self._l_select_file)
-		self._f_select_file.addWidget(self._b_select_file)
+		self._l_select_output_file = qt.QLabel("Output file: ")
+		self._l_select_output_file.setStyleSheet(self._resources["labels"]["all_input"])
+		self._b_select_output_file = qt.QPushButton(self._output_file)
+
+		self._f_select_file.addWidget(self._l_select_file, 0,0)
+		self._f_select_file.addWidget(self._b_select_file, 1,0)
+
+		self._f_select_file.addWidget(self._l_select_output_file, 0,1)
+		self._f_select_file.addWidget(self._b_select_output_file, 1,1)
+
+		self._f_select_file.addWidget(self.get_QHline(), 2,0,2,2)
 
 		#f_select_file.setLayout(f_select_file)
-		self._b_select_file.clicked.connect(lambda a: self.browse([self.FILE_TYPE_WAV]))		
+		self._b_select_file.clicked.connect(lambda a: self.set_file())	
+		self._b_select_output_file.clicked.connect(lambda a: self.set_output_file())		
 
 		#-------------- Frame options ---------------------------------------------
 		self._f_options = qt.QGridLayout()
@@ -141,6 +149,9 @@ class Didspeech(qt.QApplication):
 		self._b_start.clicked.connect(self.start_parse)
 		self._b_quit.clicked.connect(self.exit)
 
+		self._b_other_settings = qt.QPushButton("Other settings")
+		self._b_other_settings.setStyleSheet(str(self._resources["buttons"]["b_other_settings"]))
+
 		self._f_options.addWidget(self._l_start, 0,0)
 		self._f_options.addWidget(self._e_start, 0,1)
 		self._f_options.addWidget(self._l_end, 1,0)
@@ -148,6 +159,8 @@ class Didspeech(qt.QApplication):
 
 		self._f_options.addWidget(self._b_start, 2,0)
 		self._f_options.addWidget(self._b_quit, 2,1)
+		# FIXME make other settings
+		#self._f_options.addWidget(self._b_other_settings, 3,0,3,3)
 
 		#---------- Frame Output ----------------------------------------------
 		self._f_output = qt.QVBoxLayout()
@@ -164,12 +177,14 @@ class Didspeech(qt.QApplication):
 
 		#---------- <ADD HERE OTHER FRAMES AND WIDGETS TO CREATE> -------------
 
-	def browse(self, file_types=["All files (*)"]):
-		""" Browse into filesystem
+	def set_file(self):
+		""" Browse into filesystem to choose an audio file
 
 		Parameters:
 			file_types (list): list of accepted exenstions
 		"""
+
+		file_types=["Wav files (*.wav)",]
 
 		file_types_str = ""
 		for file_type in file_types:
@@ -180,13 +195,48 @@ class Didspeech(qt.QApplication):
 		options = qt.QFileDialog.Options()
 		options |= qt.QFileDialog.DontUseNativeDialog
 		choose = qt.QFileDialog.getOpenFileName(dialog, "QFileDialog.getOpenFileName()", "", file_types_str, options=options)
+		selected = choose[0]
+		if selected == "":
+			return
 		self._b_select_file.setText(choose[0][choose[0].rindex("/")+1:])
 		self._file = choose[0]
+		return choose[0]
+	
+	def set_output_file(self):
+		""" Browse into filesystem
+
+		Parameters:
+			file_types (list): list of accepted exenstions
+		"""
+		file_types=["All files (*)"]
+
+		file_types_str = ""
+		for file_type in file_types:
+			file_types_str += file_type+(";;")
+
+		dialog = qt.QWidget()
+		dialog.setWindowTitle("Save file on...")
+		options = qt.QFileDialog.Options()
+		options |= qt.QFileDialog.DontUseNativeDialog
+		choose = qt.QFileDialog.getOpenFileName(dialog, "QFileDialog.getSaveFileName()", "", file_types_str, options=options)
+		self._b_select_output_file.setText(choose[0][choose[0].rindex("/")+1:])
+		self._output_file = choose[0]
 		return choose[0]
 
 	def error_dialog(self, message="Error"):	
 		error_dialog = qt.QErrorMessage()
 		error_dialog.showMessage(message)
+
+	def load_resources(self):
+		res = dict()
+		for file in os.listdir(os.path.join("resources","style")):
+			with open(os.path.join("resources","style",file), "r") as f:
+				for line in f:
+					res[file] = dict()
+					element_name = line[:line.find(" ")]
+					css = line[line.find("{")+1:]
+					res[file][element_name] = css
+		self._resources = res
 
 	def start_parse(self):  
 		""" Main function, start parsing process
@@ -244,7 +294,10 @@ class Didspeech(qt.QApplication):
 		while i < ms_end:
 			print_d("Chunk #"+str(j), 2)
 			# split audio
-			chunk = audio[ms_start:ms_start+self._chunk_size]
+			if ms_start+self._chunk_size > ms_end:
+				chunk = audio[ms_start:ms_end-1]
+			else:
+				chunk = audio[ms_start:ms_start+self._chunk_size]
 			# create associated file (named like: filename_chunk_1.wav) and add it into a list (this files will be delete in the end)
 			chunk_file = self._file+"_chunk_"+str(j)+".wav"
 			self.file_list.append(chunk_file)
@@ -290,7 +343,7 @@ class Didspeech(qt.QApplication):
 			print_partial.start()
 			print_partial.print_partial[str].connect(self.tb_insert)
 
-	def finish_parse(self, text, filename="save.txt", gui=True):
+	def finish_parse(self, text):
 		""" Invoke at the end of parsing. It save the result on file and show it
 			on log text box. Furthermore, delete created chunks file and show a pop up
 			that inform for the finish.
@@ -306,8 +359,9 @@ class Didspeech(qt.QApplication):
 		print_d("Finish!")
 
 		# save result on file
-		with open(filename, "w+") as f:
-			print_d("Writing response on file "+filename+"...")
+		with open(self._output_file, "w+") as f:
+			print_d("Writing response on file "+self._output_file+"...")
+			print_d(text)
 			f.write(text)
 
 		# delete files
@@ -316,9 +370,8 @@ class Didspeech(qt.QApplication):
 			os.remove(f)
 		
 		# show result in text box and show pop up
-		if gui:
-			self.tb_insert("------------ RESULT -----\n"+text, replace=True)
-			self.error_dialog("Finish, result saved on "+filename)
+		self.tb_insert("------------ RESULT -----\n"+text, replace=True)
+		self.error_dialog("Finish, result saved on "+self._output_file)
 		
 		(SystemJob(self, "vlc "+self._file)).start()
 
@@ -330,6 +383,12 @@ class Didspeech(qt.QApplication):
 
 	def tb_get_text(self):
 		return self._tb_out.toPlainText()
+
+	def get_QHline(self):
+		qhline = qt.QFrame()
+		qhline.setFrameShape(qt.QFrame.HLine)
+		qhline.setFrameShadow(qt.QFrame.Plain)
+		return qhline
 
 if __name__=='__main__':
 	didspeech = Didspeech()
@@ -343,9 +402,9 @@ if __name__=='__main__':
 	main_frame = qt.QGridLayout()
 
 	#-------------- Add all ---------------------------------------------------
-	main_frame.addLayout(didspeech._f_select_file, 0,0)
-	main_frame.addLayout(didspeech._f_options, 0,1)
-	main_frame.addLayout(didspeech._f_output, 1,0,1,2)
+	main_frame.addLayout(didspeech._f_select_file, 0,0,0,2)
+	main_frame.addLayout(didspeech._f_options, 2,0,2,2)
+	main_frame.addLayout(didspeech._f_output, 2,0,2,2)
 	window.setLayout(main_frame)
 	
 	window.resize(700,1800)

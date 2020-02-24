@@ -25,8 +25,8 @@ if __name__=='__main__':
 	
 	# put all subframe created earlier inside main_frame
 	main_frame.addLayout(didspeech._f_select_file, 0,0)
-	main_frame.addLayout(didspeech._f_options, 0,1)
-	main_frame.addLayout(didspeech._f_output, 1,0,1,2)
+	main_frame.addLayout(didspeech._f_options, 1,0,1,1)
+	main_frame.addLayout(didspeech._f_output, 2,0,2,2)
 
 	window.resize(700, 500)
 	window.setLayout(main_frame)
