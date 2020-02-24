@@ -11,7 +11,5 @@ Two versions are avaible:
 I know, now it is a little bit confused, but it's a beta.
 
 # TODO
-- Make it clear that it has started
-- Make it clear that file is correctly selected
 - Make gui more beautiful
 - More options in gui

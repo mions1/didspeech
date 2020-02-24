@@ -24,19 +24,20 @@ class Start(QThread):
 		In the end, emit a singal and send the output, 
 		so the extracted text
 	"""
-
 	is_finish = pyqtSignal(str)	# signal to notify end of jobs
 
-	def __init__(self, didspeech, threads):
+	def __init__(self, didspeech, threads, loading_thread=None):
 		""" Init
 
 		Parameters:
 			didspeech (Didspeech): the app, used for __init__ of QThread
-			threads (list): list of Threads from multithread.Parsing 
+			threads (list): list of Threads from multithread.Parsing
+			loading_thread (QThread): Thread that print a loading string while computing 
 		"""
 		QThread.__init__(self, didspeech)
 		self._didspeech = didspeech
 		self._threads = threads
+		self._loading_thread = loading_thread
 		self.exiting = False
 		self._text = ""
 	
@@ -49,6 +50,12 @@ class Start(QThread):
 			When they finished, emit a signal with the output text.
 		"""
 		start_time = time.time()
+		
+		# print a blinking "loading..." string in text box
+		if self._loading_thread:
+			print_d("Starting loading thread...")
+			self._loading_thread.start()
+		# start parsing thread
 		print_d("Starting threads...")
 		for t in self._threads:
 			t.start()
@@ -69,6 +76,10 @@ class Start(QThread):
 			self._text += t+"\n"
 		Parsing.text = []
 
+		# stop loading thread
+		if self._loading_thread:
+			self._loading_thread.exit()
+		# stop parsing thread
 		self.is_finish.emit(self._text)
 		elapsed_time = time.time() - start_time
 		print_d("Run time: "+str(elapsed_time))
@@ -84,6 +95,11 @@ class Didspeech(qt.QApplication):
 	FILE_TYPE_WAV = "Wav files (*.wav)"
 
 	def __init__(self, chunk_size=50000, options=[]):
+		""" Main class, application
+
+		Parameters:
+			chunk_size (int): length of every chunk (so, a piece of audio)
+		"""
 		super().__init__(options)
 		self._file = ""
 		self._start = ""
@@ -164,6 +180,7 @@ class Didspeech(qt.QApplication):
 		options = qt.QFileDialog.Options()
 		options |= qt.QFileDialog.DontUseNativeDialog
 		choose = qt.QFileDialog.getOpenFileName(dialog, "QFileDialog.getOpenFileName()", "", file_types_str, options=options)
+		self._b_select_file.setText(choose[0][choose[0].rindex("/")+1:])
 		self._file = choose[0]
 		return choose[0]
 
@@ -202,6 +219,7 @@ class Didspeech(qt.QApplication):
 		ms_start, ms_end = time_2_ms(self._start, self._end)
 		print_d("Loading audio file...")
 
+		audio = AudioSegment.from_wav(self._file)
 		# if ms_start == 0 maybe self._start is unset, so adjust it
 		if ms_start == 0:
 			self._start = "00:00:00"
@@ -255,26 +273,14 @@ class Didspeech(qt.QApplication):
 		for chunk in split_chunks:
 			threads.append(Parsing(self, chunk, n_thread))
 			n_thread += 1
-
-
-		"""
-		s = math.floor(chunks_num/THREADS)
-		j = 0
-		n_thread = 0
-		for i in range(THREADS):
-			threads.append(Parsing(self, chunks[j:j+s], n_thread))
-			j = j+s
-			n_thread += 1
-		# if odd, add remains chunks to last thread
-		if s != math.ceil(chunks_num/THREADS):
-			for c in chunks[j:]:
-				threads[-1]._chunks.append(c)
-		"""
 		
 		# start parsing
-		started = Start(self, threads)
+			# loading_thread is for print loading string
+		loading_thread = PrintLoading(self, "Loading", [".","..","..."])
+		started = Start(self, threads, loading_thread=loading_thread)
 		started.start()
 		started.is_finish[str].connect(self.finish_parse)
+		loading_thread.print_loading[str,bool].connect(self.tb_insert)
 
 		# disable button to avoid problems
 		self._b_start.setEnabled(False)
@@ -321,6 +327,9 @@ class Didspeech(qt.QApplication):
 			self._tb_out.setText(text)
 		else:
 			self._tb_out.append(text)
+
+	def tb_get_text(self):
+		return self._tb_out.toPlainText()
 
 if __name__=='__main__':
 	didspeech = Didspeech()

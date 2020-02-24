@@ -23,6 +23,34 @@ class SystemJob(QThread):
 		print_d("Starting command: "+self._command)
 		os.system(self._command)
 
+class PrintLoading(QThread):
+	print_loading = pyqtSignal(str,bool)
+
+	def __init__(self, parent, fixed_text="Loading", changing_text=[".","..","..."]):
+		QThread.__init__(self, parent)
+		self._parent = parent
+		self._fixed_text = fixed_text
+		self._changing_text = changing_text
+		self._last_printed = fixed_text
+		self.exiting = False
+
+	def __del__(self):
+		self.exiting = True
+		self.wait()
+
+	def run(self):
+		i = 0
+		tb_text = self._fixed_text
+		while not self.exiting:
+			self.print_loading.emit(tb_text,True)
+			time.sleep(0.8)	 
+			tb_text = self._parent.tb_get_text()
+			new_print = str(self._fixed_text)+str(self._changing_text[i])
+			tb_text = tb_text.replace(self._last_printed, new_print)
+			self._last_printed = new_print
+
+			i = (i+1)%len(self._changing_text)
+
 class Chunk():
 	def __init__(self, number, chunk, filename, start="00:00:00", end="00:00:00"):
 		self._number = number
@@ -74,6 +102,9 @@ class PrintPartial(QThread):
 		print_d("All done, die")
 
 class Parsing(QThread):
+	""" 
+	"""
+
 	file = None
 	text = []
 
