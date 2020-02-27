@@ -172,7 +172,7 @@ class Didspeech(qt.QApplication):
 		tmp_str = "1. Select an audio file\n"
 		tmp_str += "2. Set range to parse (left blank if the whole file)\n"
 		tmp_str += "3. Press Start button\n"
-		tmp_str += "In this box you will see log and result"
+		tmp_str += "In this box you will see log and result. Result will be saved on output file too"
 		self.tb_insert(tmp_str)
 
 		self._f_output.addWidget(self._tb_out)
@@ -206,8 +206,14 @@ class Didspeech(qt.QApplication):
 			file_types (list): list of accepted exenstions
 		"""
 
-		file_types=["Wav files (*.wav)",]
-
+		file_types=["Wav files (*.wav)",
+					"Mp3 files (*.mp3)",
+					"MP4 files (*.mp4)",
+					"Ogg files (*.ogg)",
+					"Flv files (*.flv)",
+					"Wma files (*.wma)",
+					"Aac files (*.aac)",
+		]
 		file_types_str = ""
 		for file_type in file_types:
 			file_types_str += file_type+(";;")
@@ -263,6 +269,10 @@ class Didspeech(qt.QApplication):
 					res[file][element_name] = css
 		self._resources = res
 
+	def get_audio(self):
+		audio_type = self._file[self._file.rindex(".")+1:]
+		return AudioSegment.from_file(self._file, audio_type)
+
 	def start_parse(self):  
 		""" Main function, start parsing process
 		"""
@@ -279,7 +289,7 @@ class Didspeech(qt.QApplication):
 		ms_start, ms_end = time_2_ms(self._start, self._end)
 		print_d("Loading audio file...")
 
-		audio = AudioSegment.from_wav(self._file)
+		audio = self.get_audio()
 		# if ms_start == 0 maybe self._start is unset, so adjust it
 		if ms_start == 0:
 			self._start = "00:00:00"
