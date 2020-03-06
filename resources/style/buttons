@@ -1,1 +1,2 @@
-b_other_settings {background-color: #FF324532; text-align:center;
+b_other_settings {background:#FF324532; text-align:center;
+all {background:#C9CACC;

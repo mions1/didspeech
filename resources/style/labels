@@ -1,1 +1,2 @@
-all_input {text-align:center; font-weight: bold;
+all_input {text-align:center; font-weight:bold; background:transparent;
+all {color:#000000; background:#C9CACC;

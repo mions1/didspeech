@@ -8,8 +8,9 @@ from os import path
 from pydub import AudioSegment
 from threading import Thread
 from qt_gui.utils import misc
-from qt_gui.utils.misc import print_d, time_2_ms, ms_2_time
+from qt_gui.utils.misc import print_d, time_2_ms, ms_2_time, is_video
 from qt_gui.multithread.multithread import *
+import moviepy.editor
 
 sys.path.append("..")
 sys.path.append(".")
@@ -90,7 +91,16 @@ class Didspeech(qt.QApplication):
 		handle their functions.
 	"""
 
-	SUPPORTED_FILE = ".wav;"
+	SUPPORTED_FILE = ["wav",
+					"ogg",
+					"flv",
+					"wma",
+					"aac",
+					"mp3",
+
+					"mp4",
+					"avi",
+					]
 
 	def __init__(self, file="Select file...", chunk_size=5000, output_file="save.txt", options=[]):
 		""" Main class, application
@@ -111,12 +121,14 @@ class Didspeech(qt.QApplication):
 		self._f_select_file = qt.QGridLayout()
 
 		self._l_select_file = qt.QLabel("Input file:")
-		self._l_select_file.setStyleSheet(self._resources["labels"]["all_input"])
+		self.set_style(self._l_select_file, "labels", "all_input")
 		self._b_select_file = qt.QPushButton(self._file)
+		self.set_style(self._b_select_file, "buttons", "b_select_file")
 
 		self._l_select_output_file = qt.QLabel("Output file: ")
-		self._l_select_output_file.setStyleSheet(self._resources["labels"]["all_input"])
+		self.set_style(self._l_select_output_file, "labels", "all_input")
 		self._b_select_output_file = qt.QPushButton(self._output_file)
+		self.set_style(self._b_select_file, "buttons", "b_select_file")
 
 		self._f_select_file.addWidget(self._l_select_file, 0,0)
 		self._f_select_file.addWidget(self._b_select_file, 1,0)
@@ -124,22 +136,30 @@ class Didspeech(qt.QApplication):
 		self._f_select_file.addWidget(self._l_select_output_file, 0,1)
 		self._f_select_file.addWidget(self._b_select_output_file, 1,1)
 
-		self._f_select_file.addWidget(self.get_QHline(), 2,0,2,2)
+		label = qt.QLabel()
+		pixmap = QPixmap('title.png')
+		label.setPixmap(pixmap)
+		label.setStyleSheet("background:transparent;")
+		self._f_select_file.addWidget(label, 2,0,2,2)
+		self._f_select_file.addWidget(self.get_QHline(), 3,0,3,2)
 
 		#f_select_file.setLayout(f_select_file)
 		self._b_select_file.clicked.connect(lambda a: self.set_file())	
-		self._b_select_output_file.clicked.connect(lambda a: self.set_output_file())		
+		self._b_select_output_file.clicked.connect(lambda a: self.set_output_file())
+		self.set_style(self._b_select_output_file, "buttons", "b_select_output_file")		
 
 		#-------------- Frame options ---------------------------------------------
 		self._f_options = qt.QGridLayout()
 
 		self._l_start = qt.QLabel("Start (hh:mm:ss)")
+		self.set_style(self._l_start, "labels", "l_start")
 		self._e_start = qt.QLineEdit()
 		self._e_start.setMaxLength(8)
 		self._e_start.setInputMask("99:99:99")
 		self._e_start.setText("00:00:00")
 
 		self._l_end = qt.QLabel("End (hh:mm:ss)")
+		self.set_style(self._l_end, "labels", "l_end")
 		self._e_end = qt.QLineEdit()
 		self._e_end.setMaxLength(8)
 		self._e_end.setInputMask("99:99:99")
@@ -147,12 +167,14 @@ class Didspeech(qt.QApplication):
 
 		self._b_start = qt.QPushButton("Start", enabled=False, default=True)
 		self._b_quit = qt.QPushButton("Force quit")
+		self.set_style(self._b_start, "buttons", "b_start")
+		self.set_style(self._b_quit, "buttons", "b_end")
 
 		self._b_start.clicked.connect(self.start_parse)
 		self._b_quit.clicked.connect(self.exit)
 
 		self._b_other_settings = qt.QPushButton("Other settings")
-		self._b_other_settings.setStyleSheet(str(self._resources["buttons"]["b_other_settings"]))
+		self.set_style(self._b_other_settings, "buttons", "b_other_settings")
 
 		self._f_options.addWidget(self._l_start, 0,0)
 		self._f_options.addWidget(self._e_start, 0,1)
@@ -174,6 +196,7 @@ class Didspeech(qt.QApplication):
 		tmp_str += "3. Press Start button\n"
 		tmp_str += "In this box you will see log and result. Result will be saved on output file too"
 		self.tb_insert(tmp_str)
+		self.set_style(self._tb_out, "textbox", "tb_out")
 
 		self._f_output.addWidget(self._tb_out)
 
@@ -192,12 +215,13 @@ class Didspeech(qt.QApplication):
 		
 		# if audio file is no a .wav FIXME: It must support more audio type
 		if selected != "":
-			if selected[-4:] not in Didspeech.SUPPORTED_FILE:
+			ext = selected[selected.rfind(".")+1:]
+			if ext not in Didspeech.SUPPORTED_FILE:
 				print_d("file not supported yet, exit!")
 				self.error_dialog("Please, audio file must be in a supported type: "+str(Didspeech.SUPPORTED_FILE))  
 				return False
 		
-		return True
+		return ext
 
 	def set_file(self):
 		""" Browse into filesystem to choose an audio file
@@ -213,6 +237,9 @@ class Didspeech(qt.QApplication):
 					"Flv files (*.flv)",
 					"Wma files (*.wma)",
 					"Aac files (*.aac)",
+
+					"Mp4 files (*.mp4)",
+					"Avi files (*.avi)",
 		]
 		file_types_str = ""
 		for file_type in file_types:
@@ -224,10 +251,21 @@ class Didspeech(qt.QApplication):
 		options |= qt.QFileDialog.DontUseNativeDialog
 		choose = qt.QFileDialog.getOpenFileName(dialog, "QFileDialog.getOpenFileName()", "", file_types_str, options=options)
 		selected = choose[0]
-		if self.check_file(selected):
+		file_type = self.check_file(selected)
+		if file_type:
 			self._b_select_file.setText(choose[0][choose[0].rindex("/")+1:])
 			self._file = choose[0]
-			self._audio = AudioSegment.from_wav(self._file)
+			if is_video(self._file):
+				print_d("Converting video...")
+				video = moviepy.editor.VideoFileClip(self._file)
+				audio = video.audio
+				file_type = "mp3"
+				self._file = self._file+"."+file_type
+				audio.write_audiofile(self._file)
+				self._file = self._file+".mp3"
+				print_d("Finish convertion!")
+			
+			self._audio = AudioSegment.from_file(self._file, file_type)
 			print(ms_2_time(len(self._audio)))
 			self._e_end.setText(ms_2_time(len(self._audio)))
 			self._b_start.setEnabled(True)
@@ -259,15 +297,33 @@ class Didspeech(qt.QApplication):
 		error_dialog.showMessage(message)
 
 	def load_resources(self):
+		print_d("Loading resources...")
 		res = dict()
 		for file in os.listdir(os.path.join("resources","style")):
 			with open(os.path.join("resources","style",file), "r") as f:
 				for line in f:
-					res[file] = dict()
+					if file not in res:
+						res[file] = dict()
 					element_name = line[:line.find(" ")]
 					css = line[line.find("{")+1:]
 					res[file][element_name] = css
 		self._resources = res
+		print_d(self._resources, 2)
+		print_d("Finish loading resources!")
+
+	def set_style(self, object, category, name=""):
+		if not self._resources:
+			self.load_resources()
+		if category not in self._resources:
+			return
+		style = ""
+		if "all" in self._resources[category]:
+			style += str(self._resources[category]["all"])
+		if name in self._resources[category]:
+			style += str(self._resources[category][name])
+		object.setStyleSheet(style)
+		print_d(str(object)+" "+str(category)+" "+str(name)+" "+style)
+		pass
 
 	def get_audio(self):
 		audio_type = self._file[self._file.rindex(".")+1:]

@@ -1,14 +1,14 @@
 import argparse
 
-TRACE = 1
+TRACE = 2
 
 def print_d(text, level=1):
 	""" Enable trace to print tracing. Higher levels means more details
 	"""
-	if TRACE == level:
+	if level <= TRACE:
 		print(str(text))
 
-def handle_params():
+def get_params():
 	parser = argparse.ArgumentParser(description="didspeech allow you to transcrive your audio file",
 				epilog="For every suggestion, please contact <simone.mione1@gmail.com>")
 	parser.add_argument("-f", "--file", help="Audio file to parse, mandatory")
@@ -73,3 +73,14 @@ def ms_2_time(ms):
 		hh = "0"+str(hh)
 
 	return str(hh)+":"+str(mm)+":"+str(ss)
+
+def is_video(file):
+	extensions = ["mp4",
+				"avi",
+				"mvk",
+				]
+	ext = file[file.rfind("."):]
+	if ext in extensions:
+		return True
+	else:
+		return False
