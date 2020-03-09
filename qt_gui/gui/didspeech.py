@@ -138,7 +138,7 @@ class Didspeech(qt.QApplication):
 		self._f_select_file.addWidget(self._b_select_output_file, 1,1)
 
 		l_title = qt.QLabel()
-		pixmap = QPixmap(path.join('resources','title.png'))
+		pixmap = QPixmap(path.join("resources","images","title.png"))
 		l_title.setPixmap(pixmap)
 		self.set_style(l_title, "labels", "title")
 		self._f_select_file.addWidget(l_title, 2,0,2,2)

@@ -37,5 +37,5 @@ if __name__=='__main__':
 	
 	window.show()
 
-	window.setStyleSheet(" background-image: url(" +path.join("resources","wallpaper.jpg")+ "); background-attachment: fixed;") 
+	window.setStyleSheet(" background-image: url(" +path.join("resources", "images","wallpaper.jpg")+ "); background-attachment: fixed;") 
 	didspeech.exec_()
