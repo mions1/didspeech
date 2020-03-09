@@ -73,7 +73,8 @@ class Start(QThread):
 		# at the end, save the result in text
 		text = Parsing.text
 		for t in text:
-			self._text += t+"\n"
+			if t:
+				self._text += t+"\n"
 		Parsing.text = []
 
 		# stop loading thread
@@ -102,7 +103,7 @@ class Didspeech(qt.QApplication):
 					"avi",
 					]
 
-	def __init__(self, file="Select file...", chunk_size=5000, output_file="save.txt", options=[]):
+	def __init__(self, file="Select file...", chunk_size=50000, output_file="save.txt", options=[]):
 		""" Main class, application
 
 		Parameters:
@@ -136,11 +137,11 @@ class Didspeech(qt.QApplication):
 		self._f_select_file.addWidget(self._l_select_output_file, 0,1)
 		self._f_select_file.addWidget(self._b_select_output_file, 1,1)
 
-		label = qt.QLabel()
-		pixmap = QPixmap('title.png')
-		label.setPixmap(pixmap)
-		label.setStyleSheet("background:transparent;")
-		self._f_select_file.addWidget(label, 2,0,2,2)
+		l_title = qt.QLabel()
+		pixmap = QPixmap(path.join('resources','title.png'))
+		l_title.setPixmap(pixmap)
+		self.set_style(l_title, "labels", "title")
+		self._f_select_file.addWidget(l_title, 2,0,2,2)
 		self._f_select_file.addWidget(self.get_QHline(), 3,0,3,2)
 
 		#f_select_file.setLayout(f_select_file)
@@ -201,7 +202,7 @@ class Didspeech(qt.QApplication):
 		self._f_output.addWidget(self._tb_out)
 
 		#---------- <ADD HERE OTHER FRAMES AND WIDGETS TO CREATE> -------------
-
+		
 	def check_file(self, selected):
 
 		# if no file selected, return
@@ -210,7 +211,7 @@ class Didspeech(qt.QApplication):
 				self._file = "demo.wav"
 			else:
 				print_d("no file selected, exit!")
-				self.error_dialog("Please, first select a file")  
+				self.message_dialog("Error", "Please, select a file first", icon=qt.QMessageBox.Critical)
 				return False
 		
 		# if audio file is no a .wav FIXME: It must support more audio type
@@ -218,7 +219,7 @@ class Didspeech(qt.QApplication):
 			ext = selected[selected.rfind(".")+1:]
 			if ext not in Didspeech.SUPPORTED_FILE:
 				print_d("file not supported yet, exit!")
-				self.error_dialog("Please, audio file must be in a supported type: "+str(Didspeech.SUPPORTED_FILE))  
+				self.message_dialog("Error", "Please, audio file must be in a supported type"+str(Didspeech.SUPPORTED_FILE), icon=qt.QMessageBox.Critical)
 				return False
 		
 		return ext
@@ -244,13 +245,13 @@ class Didspeech(qt.QApplication):
 		file_types_str = ""
 		for file_type in file_types:
 			file_types_str += file_type+(";;")
-
 		dialog = qt.QWidget()
 		dialog.setWindowTitle("Choose audio file")
 		options = qt.QFileDialog.Options()
 		options |= qt.QFileDialog.DontUseNativeDialog
 		choose = qt.QFileDialog.getOpenFileName(dialog, "QFileDialog.getOpenFileName()", "", file_types_str, options=options)
 		selected = choose[0]
+		
 		file_type = self.check_file(selected)
 		if file_type:
 			self._b_select_file.setText(choose[0][choose[0].rindex("/")+1:])
@@ -259,11 +260,11 @@ class Didspeech(qt.QApplication):
 				print_d("Converting video...")
 				video = moviepy.editor.VideoFileClip(self._file)
 				audio = video.audio
-				file_type = "mp3"
-				self._file = self._file+"."+file_type
+				file_type = "wav"
+				self._file = path.join("resources","output",path.basename(self._file)[:self._file.rfind(".")]+"."+file_type)
 				audio.write_audiofile(self._file)
-				self._file = self._file+".mp3"
 				print_d("Finish convertion!")
+				self.tb_insert("Done!", False)
 			
 			self._audio = AudioSegment.from_file(self._file, file_type)
 			print(ms_2_time(len(self._audio)))
@@ -282,7 +283,6 @@ class Didspeech(qt.QApplication):
 		file_types_str = ""
 		for file_type in file_types:
 			file_types_str += file_type+(";;")
-
 		dialog = qt.QWidget()
 		dialog.setWindowTitle("Save file on...")
 		options = qt.QFileDialog.Options()
@@ -292,9 +292,13 @@ class Didspeech(qt.QApplication):
 		self._output_file = choose[0]
 		return choose[0]
 
-	def error_dialog(self, message="Error"):	
-		error_dialog = qt.QErrorMessage()
-		error_dialog.showMessage(message)
+	def message_dialog(self, title="Info", message="Info", more_text="", icon=qt.QMessageBox.NoIcon):
+		msg = qt.QMessageBox()
+		msg.setIcon(icon)
+		msg.setText(message)
+		msg.setInformativeText(more_text)
+		msg.setWindowTitle(title)
+		msg.exec_()
 
 	def load_resources(self):
 		print_d("Loading resources...")
@@ -444,9 +448,9 @@ class Didspeech(qt.QApplication):
 		
 		# show result in text box and show pop up
 		self.tb_insert("------------ RESULT -----\n"+text, replace=True)
-		self.error_dialog("Finish, result saved on "+self._output_file)
-		
-		(SystemJob(self, "vlc "+self._file)).start()
+		self.message_dialog("Finish", "Parsing finished", "Result saved on "+self._output_file, qt.QMessageBox.Information)
+
+		(SystemJob(self, 'vlc "'+self._file+'"')).start()
 
 	def tb_insert(self, text, replace=False):
 		if replace:

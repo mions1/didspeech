@@ -79,7 +79,7 @@ def is_video(file):
 				"avi",
 				"mvk",
 				]
-	ext = file[file.rfind("."):]
+	ext = file[file.rfind(".")+1:]
 	if ext in extensions:
 		return True
 	else:

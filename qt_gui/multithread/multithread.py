@@ -23,6 +23,29 @@ class SystemJob(QThread):
 		print_d("Starting command: "+self._command)
 		os.system(self._command)
 
+class ShowDialog(QThread):
+
+	def __init__(self, parent, title="Title", message="Message", more_text="More", icon=QMessageBox.NoIcon):
+		QThread.__init__(self, parent)
+		self._parent = parent
+		self._title = title
+		self._message = message
+		self._more_text = more_text
+		self._icon = icon
+		self.exiting = False
+	
+	def __del__(self):
+		self.exiting = True
+		self.wait()
+
+	def run(self):
+		msg = QMessageBox()
+		msg.setIcon(self._icon)
+		msg.setText(self._message)
+		msg.setInformativeText(self._more_text)
+		msg.setWindowTitle(self._title)
+		msg.exec_()
+
 class PrintLoading(QThread):
 	print_loading = pyqtSignal(str,bool)
 
