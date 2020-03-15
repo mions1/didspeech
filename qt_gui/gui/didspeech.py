@@ -1,15 +1,19 @@
 import speech_recognition as sr
 import sys, os, math, time, argparse
 import PyQt5.QtWidgets as qt
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+import PyQt5.QtCore as qtc
+import PyQt5.QtGui as qtg
 
 from os import path
 from pydub import AudioSegment
 from threading import Thread
 from qt_gui.utils import misc
 from qt_gui.utils.misc import print_d, time_2_ms, ms_2_time, is_video
-from qt_gui.multithread.multithread import *
+from qt_gui.multithread.chunk import Chunk
+from qt_gui.multithread.parsing import Parsing
+from qt_gui.multithread.prints import PrintPartial, PrintLoading
+from qt_gui.multithread.multithread import SystemJob, ShowDialog
+
 import moviepy.editor
 
 sys.path.append("..")
@@ -17,14 +21,14 @@ sys.path.append(".")
 
 THREADS = 4
 
-class Start(QThread):
+class Start(qtc.QThread):
 	""" Handle threads which execute parsing in order to let app reactive.
 		The main job is to start threads in order to
 		begin parsing and wait for the finish.
 		In the end, emit a singal and send the output, 
 		so the extracted text
 	"""
-	is_finish = pyqtSignal(str)	# signal to notify end of jobs
+	is_finish = qtc.pyqtSignal(str)	# signal to notify end of jobs
 
 	def __init__(self, didspeech, threads, loading_thread=None):
 		""" Init
@@ -34,7 +38,7 @@ class Start(QThread):
 			threads (list): list of Threads from multithread.Parsing
 			loading_thread (QThread): Thread that print a loading string while computing 
 		"""
-		QThread.__init__(self, didspeech)
+		qtc.QThread.__init__(self, didspeech)
 		self._didspeech = didspeech
 		self._threads = threads
 		self._loading_thread = loading_thread
@@ -82,8 +86,8 @@ class Start(QThread):
 			self._loading_thread.exit()
 		# stop parsing thread
 		self.is_finish.emit(self._text)
-		elapsed_time = time.time() - start_time
-		print_d("Run time: "+str(elapsed_time))
+		Didspeech.elapsed_time = time.time() - start_time
+		print_d("Run time: "+str(Didspeech.elapsed_time))
 		pass
 
 class Didspeech(qt.QApplication):
@@ -102,6 +106,10 @@ class Didspeech(qt.QApplication):
 					"mp4",
 					"avi",
 					]
+
+	elapsed_time = 0
+	done = 0
+	chunks_num = 0
 
 	def __init__(self, file="Select file...", chunk_size=50000, output_file="save.txt", options=[]):
 		""" Main class, application
@@ -138,7 +146,7 @@ class Didspeech(qt.QApplication):
 		self._f_select_file.addWidget(self._b_select_output_file, 1,1)
 
 		l_title = qt.QLabel()
-		pixmap = QPixmap(path.join("resources","images","title.png"))
+		pixmap = qtg.QPixmap(path.join("resources","images","title.png"))
 		l_title.setPixmap(pixmap)
 		self.set_style(l_title, "labels", "title")
 		self._f_select_file.addWidget(l_title, 2,0,2,2)
@@ -231,17 +239,14 @@ class Didspeech(qt.QApplication):
 			file_types (list): list of accepted exenstions
 		"""
 
-		file_types=["Wav files (*.wav)",
-					"Mp3 files (*.mp3)",
-					"MP4 files (*.mp4)",
-					"Ogg files (*.ogg)",
-					"Flv files (*.flv)",
-					"Wma files (*.wma)",
-					"Aac files (*.aac)",
+		all_supported = "All supported format ("
+		file_types = []
+		for file_type in Didspeech.SUPPORTED_FILE:
+			file_types.append(str(file_type) + " files " + "(*." + str(file_type) + ")")
+			all_supported += ("*." + file_type + " ")
+		all_supported += ")"
+		file_types.insert(0, all_supported)
 
-					"Mp4 files (*.mp4)",
-					"Avi files (*.avi)",
-		]
 		file_types_str = ""
 		for file_type in file_types:
 			file_types_str += file_type+(";;")
@@ -386,7 +391,9 @@ class Didspeech(qt.QApplication):
 			i = ms_start
 			j += 1
 
+		time.sleep(8)
 		chunks_num = len(chunks)	# number of chunks created
+		Didspeech.chunks_num = chunks_num
 		Parsing.text = [False]*(chunks_num)	# used to print partial result in log text box
 		print_d("#Chunks: "+str(chunks_num))
 
@@ -394,18 +401,20 @@ class Didspeech(qt.QApplication):
 		if chunks_num < THREADS:
 			THREADS = chunks_num
 
-		# distribuite in equal part chunks to threads. If odd, the last thread will have more chunks
+		# split in equal part chunks to threads. If odd, the last thread will have more chunks
 		i = 0
-		split_chunks = [[]]*THREADS
+		split_chunks = [ [] for i in range(THREADS) ]
 		for c in chunks:
 			split_chunks[i%THREADS].append(c)
+			i += 1
+		i = 0
 		n_thread = 0
 		for chunk in split_chunks:
 			threads.append(Parsing(self, chunk, n_thread))
 			n_thread += 1
 		
 		# start parsing
-			# loading_thread is for print loading string
+		# loading_thread is for print loading string
 		loading_thread = PrintLoading(self, "Loading", [".","..","..."])
 		started = Start(self, threads, loading_thread=loading_thread)
 		started.start()
@@ -438,6 +447,7 @@ class Didspeech(qt.QApplication):
 		# save result on file
 		with open(self._output_file, "w+") as f:
 			print_d("Writing response on file "+self._output_file+"...")
+			text = text[0].upper() + text[1:].lower()
 			print_d(text)
 			f.write(text)
 
@@ -448,7 +458,7 @@ class Didspeech(qt.QApplication):
 		
 		# show result in text box and show pop up
 		self.tb_insert("------------ RESULT -----\n"+text, replace=True)
-		self.message_dialog("Finish", "Parsing finished", "Result saved on "+self._output_file, qt.QMessageBox.Information)
+		self.message_dialog("Finish", "Parsing finished in "+str(  round(Didspeech.elapsed_time, 2) ), "Result saved on "+self._output_file, qt.QMessageBox.Information)
 
 		(SystemJob(self, 'vlc "'+self._file+'"')).start()
 

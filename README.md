@@ -11,5 +11,6 @@ Two versions are avaible:
 I know, now it is a little bit confused, but it's a beta.
 
 # TODO
+- At what percentage it is
 - Make gui more beautiful
 - More options in gui

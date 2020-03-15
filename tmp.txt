@@ -1,0 +1,120 @@
+Loading.
+
+---------- PARTIAL RESULT -----------
+Allora buongiorno a tutti riprendiamo la terza lezione gli argomenti che abbiamo trattato per fare dei sistemi aveva esplicita concentrata veniamo in questa slide e gli effetti per imperfezioni perché imperfezioni che possono esserci oppure posso modificare maniera sensibile la risposta è il comportamento meccanico della nostra
+
+e sulla nostra arresta agisce oltre la o equivalente potremmo pensare a un angolo iniziate quindi la mia barretta prima che presenta una mutazione fuori piombo in questo caso cosa succede alla la mia possiamo
+
+studiando l'energia potenziale totale il percorso di guida possiamo farlo in questo modo possiamo sempre servirci del sole qui non c'è allora
+
+capisco perché non vedo l'applicazione in questo momento non vedo la sezione un attimo Vediamo un po' Allora proviamo provo a condividere
+
+Vedo la finestra di input del adesso ci siamo allora angolo iniziale di cui la media all'inizio possiamo definire come comando Exit Cancella tutto come
+
+Pisa segnate eventuale assegnazione definiamo venerdì giocato un sistema di una sola allora al solito c'è ginnastica della nonna e sarà un mezzo kg e l'angolo in cui si deforma la molla non è tetano ed almeno che temperatura iniziale meno
+
+dopo te ne sarebbe un dente dovrebbe essere controlliamo 700 e non ritrovo esattamente l'energia potenziale totale del sistema senza imperfezioni quindi è corretto
+
+o meglio dobbiamo impugnano arrivata arrivata tempo a te una volta Questa è questione che deve essere uguale l'imposizione solo il programma di questa è
+
+in presenza e possiamo disegnare questo godimento in un dominio carico rotazione possiamo quindi diciamo che deve essere uguale mente te brava
+
+niente e ricarico a tornare lo so siamo anche Nino Ma dici davvero Facciamo che sei grande dalla rappresentante
+
+la soluzione se il sistema non funziona con la linea alla Giovanna ci manca spingerci un po' vediamo meglio e poi mettiamoci anche la sede a te la curva verde è l'ultima dell'equazione questa è la soluzione
+
+rispetto all'asse delle ordinate quello che abbiamo già detto arancioni e rappresentano i sistemi la risposta del sistema quindi è l'angolo te per quello che si è la curva arancione che sembra questa tecnoarte da Zermatt
+
+Cioè questo qua sotto c'è si carica diventa negativo Grete davvero riparto caricatori Beretta una grande differenza rispetto al sistema perfetto No no non ho un carico il carico aumenta con la Roma
+
+quindi non ho punto di informazione Quindi se no mi rappresenta anche la curva a sinistra questa volta andamento viene a sinistra una piccola rotazione iniziale verso destra se voi la fate sbandare a sinistra e dovrebbe ridurre il carico
+
+che segno è stesso il carico cambio di pressione compressione voi e poi dovete aumentare il carico per aumentare la rotazione penso si lecca di continuo ad aumentare questo perché Perché la bavetta parte una volta la barretta l'avete fatta
+
+il carico deve continuare ad aumentare in maniera simile a quello che succede a te quindi la simmetria del comportamento iniziale che non ci sia più una biforcazione G Verdi non hanno un intersezione con banale c'è in più ci potrebbero studiare qui altri
+
+io avrei potuto come dicono Come fare le slide quello che succedeva avrei trovato più o meno le stesse cose in modo bene passo ulteriore Quindi abbiamo visto facciamo il passo ulteriore sistema a più gradi di libertà
+
+Ora fate sono considerate una struttura come questa continua su due appoggi esterni i vincoli interni sono due cerniere Comunque potremmo insegnare residenze diverse riconosciamo subito che è differente da due coordinate servono due coordinate per descrivere in maniera univoca la configurazione resistenze sono quindi assegnati
+
+la posizione del sistema è univocamente determinata Allora se quello che ci interessa non è lo studio della stabilità ma è il carico critico o meglio questo caso dei carichi che saranno due essendo due grandi Allora possiamo impiegare un'analisi linearizzate Che significa che studiare se vuoi adottare basta sviluppare
+
+ritenere nell'espressione dell'anno nelle coordinate lagrangiane quindi in questo modo avremo l'equazione di equilibrio linea nelle coordinate lagrangiane Allora intanto da 132 gli angoli estremi della mia immagino si possono fermare la configurazione e l'energia
+
+se quest'anno di uomo misura consenso orale e scritto 2012 in azione A B C primo C primo si rappresentano le l'inclinazione del tratto B primo C primo linearizzata la differenza
+
+questo è misurato positivo orario cioè a questo punto avremo un mezzo kg di cui ruota nazionale L'angolo di cui ruota Questa è la differenza tra più stessa cosa era
+
+questa volta in 32 + eq2 perché questi Quindi quando ho fatto la differenza e poi lo spostamento di questo punto di applicazione Quando la struttura Si deforma questo modo questo ovviamente si accorcia e la corsa mento è l per la corsa mento è la somma degli accorciamenti dei trattati di Terni il primo termine di quanto si accorciano
+
+ma sviluppando il cos'è mi servi te fino all'ultimo secondo e così non vi siete uno di 21 meno 30 ore 4 Eccolo qua Eccolo qua 31 stessa cosa per te per due e stessa cosa perché con questi termini che rappresentano l'inclinazione quindi mi sarebbe 114 metti più 124 M + 1 mettete 4 mezzi a cui devo togliere il treno mia
+
+quadrati cy15 sta proprio l'energia il lavoro elastico delle Mole c'è l'energia di semplificazioni se aveva questa espressione e adesso ovviamente devono essere soddisfatte entrambe
+
+perché l'energia potenziale deve essere contemporaneamente entrambe le coordinate e se avessi 18 gradi di libertà avrei 18 equazioni a sistema per avere una Vabbè allora Queste sono le contestate le niente Sono lineari ovviamente sono contenta perché io ho scritto un'energia un'energia che è radio quadrati con te quando vocale derivati termini quadratici e che anche partendo
+
+espressione approssimata del venerdì è chiaro che l'equazione Allora questo sistema lineare con te solo uno non sappiamo quanto vale l'11 non sappiamo quanto vale e non sappiamo anche agli autovalori tutte le volte tutte le volte che ho più incognite questioni in questo caso sono io non riesco a trovare
+
+capito Quindi il problema affinché questo sistema Come si fa tutti i problemi classici di questa matrice perché questa
+
+scrivere sotto forma di matrice Simone è vero quindi scrivo questo sistema non piove dove tempio come incognite questa matrice ha come elemento 5k mn2 plr3112 in 4K + pn2b n + 5 K
+
+è il valore Se volete lo possiamo fare sempre col nostro Non è difficile qua Allora torniamo alla proponiamo al nostro Eccolo qua Ok andiamo a scrivere e sistema stare in forma matriciale
+
+dobbiamo scrivere sistema stare in forma matriciale ma allora scriviamo attrice la prima equazione laboratorio Quindi adesso facciamo le cose segnate conseguenza Ok Allora dicevo la matrice 5k
+
+5 km in 2 + l5k meno nel doppiare Questo è quello che poi della prima equazione X2 VPN
+
+più piene di mente la matrice simmetrica il secondo termine è il termine 22 Scusate ricorso 25 K meno uguale soltanto che il termine sia in 4K
+
+voi scrivete sistema in forma compatto Sistema Questo p****** promesso questa se vuoi manteniamo la forma ma questa è proprio questa è proprio pazza Beh allora adesso facciamo questa Matrice per avere una soluzione diversa raccomando il sole
+
+questo Cioè a Verona
+
+Ecco lo hanno sostituito si possono trovare gli autovettori calcolare gli autovettori ovviamente il manipolatore li calcolano quel comando della matrice che rappresenta Questi sono i rapporti che ci sono troppi Allora al primo valore corrisponde 1
+
+Questo vuol dire che il mio sistema si basa su una configurazione deformata in cui ti manda il secondo me più alto corrisponde invece in maniera quindi l'altro ok Questo è da parte i risultati trovati
+
+ritornare è trovato questo risultato poi riportato nel sistema a due gradi di libertà Eccolo qua qui si fanno un po' di passaggi valori sono due perché sistema semplicemente per scriverle verso mi passate
+
+sistema Start lo potete scrivere così E questa forma è molto banale molto semplice perché mi dici immediatamente che per avere per soddisfare la k Uguale uguale quindi ho risposto la prima la seconda dice di soddisfare i rapporti
+
+e qui c'è quello che mi dicevi Quindi al primo corrisponde a 1 = che tu ora avendo fatto linearizzata io non posso mi perdo la possibilità di studiare la stabilità dei percorsi di equilibrio di porcate quello che posso verificare la stabilità
+
+posso fare perché la mia analisi Vale grande colecisti e quindi anche perché studiare la stabilità basta che io studi il segno della seconda dell'energia quando torno qua nella mia nella mia nella finestra
+
+l'energia Allora l'energia era siamo energia energia era un quadrato è 5 mentre adesso passerà 125 E1 571 acqua
+
+5724 programmato qui era l'energia e no E poi il lavoro è tutta meno km c'era la somma dei quadrati era così
+
+quadro due quadro e poi era meno energia come è riportata nel presente la prima ce l'ha presa quindi qui
+
+adesso se io Sì mettiti i pezzi vuol dire che lui capisce che voglio calcolare per questo oggetto due volte io tengo per te questa Quand'è che quando pnx e quindi
+
+quando il valore del carico è più piccolo di molto valore energia è definito positivo Cioè la seconda è definita positiva quindi la configurazione banane sta giustamente Quando carico che il primo non è stabile ma ovviamente che cosa succederà succederà che diventa Stabile del sistema si deforma e diventa stabile in modo di deformarsi nel primo Ora è chiaro che io non può
+
+sviluppi con termini superiori mi perdo con questa analisi linearità e la stabilità e il percorso diramato perché non c'è perché non posso studiare quindi quello che succederà è che torniamo un attimo torniamo un attimo live quello che succederà è che esiste
+
+il sistema non sistema sbatta quando raggiungi Capua
+
+avrei trovato l'analisi esatta Comunque mi stessi valori vettore dell'analisi viene realizzata quindi con l'analisi viene avvisata io comunque gli autovalori di trovo correttamente e trovo correttamente anche i modi cioè le autovetture non trovo non riesco
+
+Questo è il bacio al tuo punto sbanda e una volta che hai sbagliato non è che canta diminuisce in maniera ripetitiva se voglio aumentare lo spostamento della struttura devo mettere io avrei trovato senza energie esatta avrei trovato che Entrambi questi due percorsi seconda positiva Chiudo dicendo che nei sistemi a più gradi di libertà per studiare la stabilità studiare la insegna della
+
+che alcuni voglio ricoverato da analisi più probabilmente è riportato in queste qua le siano è la matrice che colleziona le derivate seconde dell'energia rispetto le coordinate lagrangiane quest'espressione derivata seconda di pigreco Qui sono le coordinate esempio il nostro lavatrice che raccolto viva seconda dell'energia secondo rispetto all'età 1 posto della matrice
+
+Erica per la regolarità e costruire questa matrice hessiana che raccoglie un collega di Matt e 2A energia e questa derivate seconde nel campo in corrispondenza di una volta e più qualche ora
+
+a seconda del segno che sono le siamo quindi a seconda del fatto momento più che disegno a seconda del fatto che mi sia definito positivo definito dire se per cortesia stabile Seleziona definito positivo Allora sono il punto di minimo instabile Altrimenti se non è definito positivo ne negativo ma è semidefinito non posso dire niente devo fare così
+
+siccome Cristiano è una matrice quadrata a valori reali basta studiare per capire se definita positiva le siano basta studiare il segno di una matrice matrice HC definisce positiva se va da questa condizione iniziale per qualsiasi Siccome la desiano ha autovalori reali basta studiare quindi alla fine se gli autovalori della matrice tutti positivi Ana positivo
+
+se ne siano a autovalori di gattini tutti negativi Allora la questione se non posso dire niente devo fare delle indagini Ok in questa è come si farebbe a studiare il segno della derivata seconda Questo è il segno della concavità si studia indipendenti sono più di una segno la festa delle siano ok Ovviamente questo
+
+non facendo una questa questa parte procedimento in forma esatta o quantomeno che eri tenga degli sviluppi secondo più semplicemente così si può fare si può scrivere senza scrivere in forma esatta Comunque approssimata ci si mette per esempio su un ramo che da 1/2 mantenendo
+
+si vede se la curva dell'energia si disegna venerdì se positivo sono conto di Mimmo sennò Potrei anche essere
+
+Marti non soltanto dovremmo esserci così qua Allora direi che per quanto riguarda la dicevo di sistemi di averti città concentrata anche un altro esempio che lascio a voi una birretta con due volte Una rotazionale una prestazione
+
+una volta trovati Se mettete due modo passionale trovato e poi trovare gli autovettori corrispondenti Per quanto riguarda lo studio dei sistemi elasticità concentrata la prossima volta introduciamo quindi differenziale va bene arrivederci
