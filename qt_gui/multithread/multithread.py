@@ -1,11 +1,29 @@
 import time, sys, os, speech_recognition as sr
 from threading import Thread
-from qt_gui.utils.misc import print_d
+
+from pyparsing import Optional
+
+from qt_gui.utils.misc import print_d, get_audio
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-sys.path.append("../../")
+class GetAudio(QThread):
+
+	audio_loaded_signal = pyqtSignal()
+	audio_loaded_return_signal = pyqtSignal(object)
+
+	def __init__(self, context, file):
+		QThread.__init__(self, context)
+		self._context = context
+		self._file = file
+
+	def run(self):
+		self._audio = get_audio(self._file)
+		self.audio_loaded_signal.emit()
+		self.audio_loaded_return_signal.emit(self._audio)
+
+
 
 class SystemJob(QThread):
 	

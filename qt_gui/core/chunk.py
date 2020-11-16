@@ -1,12 +1,3 @@
-import time, sys, os, speech_recognition as sr
-from threading import Thread
-from qt_gui.utils.misc import print_d
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-
-sys.path.append("../../")
-
 class Chunk():
 	def __init__(self, number, chunk, filename, start="00:00:00", end="00:00:00"):
 		self._number = number
