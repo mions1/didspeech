@@ -207,7 +207,7 @@ class Didspeech(qt.QApplication):
                 print_d("Finish convertion!")
                 self.tb_insert("Done!", False)
 
-            # FIXME: THREADING THIS. EXCLUDE M4A FROM ALLOWED FORMAT
+            # FIXME: EXCLUDE M4A FROM ALLOWED FORMAT
 
             t_get_audio = GetAudio(self, self._file)
             t_loading_audio = PrintLoadingAudio(self, t_get_audio)

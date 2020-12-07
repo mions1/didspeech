@@ -47,7 +47,7 @@ class PrintPartial(QObject):
             self.print_partial.emit(text) # refers to didispeech.start_parse
 
 class PrintLoadingAudio(QThread):
-    # FIXME: CLOSE THAT SHIT
+
     def __init__(self, context, t_get_audio):
         QThread.__init__(self, context)
         self._context = context
@@ -105,10 +105,9 @@ class PrintLoading(QThread):
         tb_text = self._fixed_text
         percent = 0
         while PrintPartial.DONE < PrintPartial.TOTAL:
-            self.print_loading.emit(tb_text,True)
+            self.print_loading.emit(tb_text, True)
             time.sleep(0.8)
-            print("DONE"+ str(PrintPartial.DONE))
-            print(PrintPartial.TOTAL)
+            print("DONE: " + str(PrintPartial.DONE) + "/" + str(PrintPartial.TOTAL))
             if PrintPartial.TOTAL != 0:
                 percent = round( (PrintPartial.DONE / PrintPartial.TOTAL)*100, 2)
             tb_text = self._parent.tb_get_text()
